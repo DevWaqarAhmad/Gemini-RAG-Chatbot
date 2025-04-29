@@ -1,12 +1,43 @@
 import streamlit as st
-from backend import rag_response  
+from backend import rag_response
 
+# Page configuration
+st.set_page_config(
+    page_title="Housess Real Estate AI Agent",
+    layout="wide"
+)
 
-st.set_page_config(page_title="Housess AI Assistant", layout="centered")
+# --- Custom Supported Languages ---
+SUPPORTED_LANGUAGES = {
+    "Auto-Detect": None,
+    "English": "en",
+    "Urdu": "ur",
+    "Hindi": "hi",
+    "Arabic": "ar",
+    "Spanish": "es",
+    "French": "fr",
+    "Chinese": "zh-cn",
+    "Bengali": "bn",
+    "Punjabi": "pa",
+    "Turkish": "tr",
+    "Filipino (Tagalog)": "tl"
+}
 
-st.title("Housess Real Estate AI Assistant")
-st.markdown("Housess Real Estate: Where Excellence Meets Your Expectations.")
+# Sidebar setup
+st.sidebar.title("Settings")
+selected_lang_name = st.sidebar.selectbox(
+    "Select Language",
+    options=SUPPORTED_LANGUAGES.keys(),
+    index=0  # Default to Auto-Detect
+)
+selected_lang_code = SUPPORTED_LANGUAGES[selected_lang_name]
 
+# Refresh chat button
+if st.sidebar.button("Refresh Chat"):
+    st.session_state.messages = []
+
+# Main content
+st.title("Housess Real Eastate AI Agent")
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -18,19 +49,26 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # React to user input
-if prompt := st.chat_input("Ask your question about UAE real estate..."):
-    # Add user message to chat history
+if prompt := st.chat_input("Ask your question..."):
+    # Add user message
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
-    # Display user message
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Generate assistant response using your RAG backend
+    # Determine target language
+    target_lang = selected_lang_code
+
+    # Generate assistant response
     with st.chat_message("assistant"):
-        with st.spinner("Response Creating..."):
-            answer = rag_response(prompt)
+        with st.spinner("🧠 Thinking..."):
+            answer = rag_response(prompt, target_lang=target_lang)
         st.markdown(answer)
 
-    # Add assistant response to chat history
+    # Add assistant message to history
     st.session_state.messages.append({"role": "assistant", "content": answer})
+
+# Initial greeting
+if len(st.session_state.messages) == 0:
+    with st.chat_message("assistant"):
+        st.markdown("Hello! How can I help you today?")
+    st.session_state.messages.append({"role": "assistant", "content": "Hello! How can I help you today?"})

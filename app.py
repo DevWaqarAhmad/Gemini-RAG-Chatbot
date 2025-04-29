@@ -60,7 +60,7 @@ if prompt := st.chat_input("Ask your question..."):
 
     # Generate assistant response
     with st.chat_message("assistant"):
-        with st.spinner("🧠 Thinking..."):
+        with st.spinner("Generating Response..."):
             answer = rag_response(prompt, target_lang=target_lang)
         st.markdown(answer)
 

@@ -1,37 +1,36 @@
 import streamlit as st
-import random
-import time
-import backend
-
-# Streamed response emulator
-def response_generator():
-    response = backend
-    for word in response.split():
-        yield word + " "
-        time.sleep(0.05)
+from backend import rag_response  
 
 
-st.title("Housess AI Agent")
+st.set_page_config(page_title="Housess AI Assistant", layout="centered")
+
+st.title("Housess Real Estate AI Assistant")
+st.markdown("Housess Real Estate: Where Excellence Meets Your Expectations.")
+
 
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat messages from history on app rerun
+# Display chat messages from history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Accept user input
-if prompt := st.chat_input("Ask my anything about Property in UAE"):
+# React to user input
+if prompt := st.chat_input("Ask your question about UAE real estate..."):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
-    # Display user message in chat message container
+    
+    # Display user message
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Display assistant response in chat message container
+    # Generate assistant response using your RAG backend
     with st.chat_message("assistant"):
-        response = st.write_stream(response_generator())
+        with st.spinner("Response Creating..."):
+            answer = rag_response(prompt)
+        st.markdown(answer)
+
     # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    st.session_state.messages.append({"role": "assistant", "content": answer})

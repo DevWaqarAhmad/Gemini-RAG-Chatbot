@@ -35,52 +35,47 @@ selected_lang_code = SUPPORTED_LANGUAGES[selected_lang_name]
 # Refresh chat button
 if st.sidebar.button("Refresh Chat"):
     st.session_state.messages = []
-    # Clear memory if the chat is refreshed
-    st.session_state.memory = []
+    st.session_state.chat_history = []
 
-# Main content
+# Title
 st.title("Housess Real Estate AI Agent")
 
-# Initialize chat history and memory
+# Initialize chat and memory history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "memory" not in st.session_state:
-    st.session_state.memory = []  # This memory will store the conversation summary
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 # Display chat messages from history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# React to user input
+# User input handling
 if prompt := st.chat_input("Ask your question..."):
     # Add user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Target language
     target_lang = selected_lang_code
 
-    # Check if user wants to summarize the chat
-    if "summarize" in prompt.lower():
-        summary = "\n".join(st.session_state.memory)  # Show conversation summary
-        with st.chat_message("assistant"):
-            st.markdown(f"**Chat Summary**:\n{summary}")
-        st.session_state.messages.append({"role": "assistant", "content": f"**Chat Summary**:\n{summary}"})
-    else:
-        # Generate a response based on the prompt
-        with st.chat_message("assistant"):
-            with st.spinner("Generating Response..."):
-                answer = rag_response(prompt, target_lang=target_lang)
-            st.markdown(answer)
-
-        # Store assistant response to memory
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        st.session_state.memory.append(answer)  # Add the answer to the memory
-
-# Default greeting if there are no previous messages
-if len(st.session_state.messages) == 0:
+    # Generate assistant response
     with st.chat_message("assistant"):
-        st.markdown("Hello! How can I help you today?")
-    st.session_state.messages.append({"role": "assistant", "content": "Hello! How can I help you today?"})
+        with st.spinner("Generating Response..."):
+            answer = rag_response(prompt, chat_history=st.session_state.chat_history, target_lang=target_lang)
+        st.markdown(answer)
+
+    # Add both prompt and response to memory and visible messages
+    st.session_state.messages.append({"role": "assistant", "content": answer})
+    st.session_state.chat_history.append(f"User: {prompt}")
+    st.session_state.chat_history.append(f"Bot: {answer}")
+
+# Initial greeting
+if len(st.session_state.messages) == 0:
+    greeting = "Hello! How can I help you today?"
+    with st.chat_message("assistant"):
+        st.markdown(greeting)
+    st.session_state.messages.append({"role": "assistant", "content": greeting})

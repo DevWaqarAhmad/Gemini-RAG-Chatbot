@@ -10,7 +10,7 @@ from googletrans import Translator
 load_dotenv()
 
 # Configure Gemini API
-my_key =  "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g" 
+#my_key =  "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g" 
 genai.configure(api_key=my_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 

@@ -1,13 +1,11 @@
 import streamlit as st
 from backend import rag_response
 
-# Page configuration
 st.set_page_config(
     page_title="Housess Real Estate AI Agent",
     layout="wide"
 )
 
-# --- Custom Supported Languages ---
 SUPPORTED_LANGUAGES = {
     "Auto-Detect": None,
     "English": "en",
@@ -23,16 +21,15 @@ SUPPORTED_LANGUAGES = {
     "Filipino (Tagalog)": "tl"
 }
 
-# Sidebar setup
 st.sidebar.title("Settings")
 selected_lang_name = st.sidebar.selectbox(
     "Select Language",
     options=SUPPORTED_LANGUAGES.keys(),
-    index=0  # Default to Auto-Detect
+    index=0  
 )
 selected_lang_code = SUPPORTED_LANGUAGES[selected_lang_name]
 
-# Refresh chat button
+
 if st.sidebar.button("Refresh Chat"):
     st.session_state.messages = []
     st.session_state.chat_history = []
@@ -47,19 +44,19 @@ if "messages" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Display chat messages from history
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input handling
+
 if prompt := st.chat_input("Ask your question..."):
-    # Add user message
+    
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Target language
+    
     target_lang = selected_lang_code
 
     # Generate assistant response

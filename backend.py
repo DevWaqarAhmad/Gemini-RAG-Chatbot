@@ -10,12 +10,10 @@ from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 
 
-# Configure Gemini API
 my_key =  "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g" 
 genai.configure(api_key=my_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Load knowledge base
 file_path = 'housess_knowledge_base.txt'
 
 genai.configure(api_key=my_key)
@@ -70,14 +68,12 @@ def translate_text(text, src_lang='auto', target_lang='en'):
         result = translator.translate(text, src=src_lang, dest=target_lang)
         return result.text
     except:
-        return text  # fallback to original text
-
+        return text  
 chat_history = []
 
 def rag_response(query, chat_history=[], target_lang='en'):
     original_lang = detect_language(query)
 
-    # Translate query to English if needed
     if original_lang != 'en':
         translated_query = translate_text(query, src_lang=original_lang, target_lang='en')
     else:
@@ -111,11 +107,9 @@ def rag_response(query, chat_history=[], target_lang='en'):
     except Exception as e:
         return f"An error occurred: {str(e)}"
 
-    # Add to memory
     chat_history.append(f"User: {translated_query}")
     chat_history.append(f"Bot: {answer_in_english}")
 
-    # Translate back to target language
     if target_lang != 'en':
         return translate_text(answer_in_english, src_lang='en', target_lang=target_lang)
     

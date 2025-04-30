@@ -1,15 +1,13 @@
 
+import os
+import dotenv
 import google.generativeai as genai
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from langdetect import detect
 from googletrans import Translator
 
-from langchain_google_genai import GoogleGenerativeAI
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
-
-
+#my_api_key = os.getenv("API_KEY")
 my_key =  "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g" 
 genai.configure(api_key=my_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
@@ -30,9 +28,6 @@ model = genai.GenerativeModel(
     generation_config=generation_config,
 )
 
-llm = GoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=my_key)
-memory = ConversationBufferMemory()
-conversation = ConversationChain(llm=llm, memory=memory)
 
 def load_knowledge_base(file_path):
     try:

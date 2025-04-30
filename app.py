@@ -37,10 +37,10 @@ if st.sidebar.button("Refresh Chat"):
     st.session_state.messages = []
     st.session_state.chat_history = []
 
-# Title
+
 st.title("Housess Real Estate AI Agent")
 
-# Initialize chat and memory history
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 

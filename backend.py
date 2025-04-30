@@ -5,12 +5,16 @@ from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 from langdetect import detect
 from googletrans import Translator
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.memory import ConversationSummaryMemory
+from langchain.prompts import PromptTemplate
+from langchain.chains import ConversationChain
 
 # Load environment variables
 load_dotenv()
 
 # Configure Gemini API
-my_key =  "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g" 
+my_key = "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g"
 genai.configure(api_key=my_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
@@ -28,9 +32,11 @@ def load_knowledge_base(file_path):
 
 knowledge_base = load_knowledge_base(file_path)
 
+# Vectorizer for relevant chunks
 vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(knowledge_base)
 
+# Retrieve relevant chunks based on query
 def retrieve_relevant_chunks(query, top_k=3):
     query_vector = vectorizer.transform([query])
     similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
@@ -44,16 +50,45 @@ def detect_language(text):
     try:
         return detect(text)
     except:
-        return 'en'  
+        return 'en'
 
 def translate_text(text, src_lang='auto', target_lang='en'):
     try:
         result = translator.translate(text, src=src_lang, dest=target_lang)
         return result.text
     except:
-        return text  # fallback to original text
+        return text
 
+# Setup LangChain memory (ConversationSummaryMemory)
+llm = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key="AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g")
+response = llm.invoke("Hello, how are you?")
+print(response.content)
+# Set up Conversation Summary Memory
+memory = ConversationSummaryMemory(llm=llm, return_messages=True)
+
+# Setup LangChain Conversation Chain
+prompt_template = PromptTemplate(
+    input_variables=["history", "input"],
+    template="""
+You are a helpful AI assistant for Housess Real Estate. Use the conversation history to answer the question.
+History:
+{history}
+Human: {input}
+AI:"""
+)
+
+chat_chain = ConversationChain(
+    llm=llm,
+    memory=memory,
+    verbose=False,
+    prompt=prompt_template
+)
+
+# Handle the user query and integrate memory
 def rag_response(query, target_lang='en'):
+    if "summarize" in query.lower():
+        return memory.buffer  # Return a summary of the entire chat
+
     original_lang = detect_language(query)
 
     # Translate query to English if needed
@@ -62,6 +97,7 @@ def rag_response(query, target_lang='en'):
     else:
         translated_query = query
 
+    # Retrieve relevant chunks
     relevant_chunks = retrieve_relevant_chunks(translated_query, top_k=3)
 
     if not relevant_chunks:
@@ -71,6 +107,7 @@ def rag_response(query, target_lang='en'):
             return translate_text(fallback, src_lang='en', target_lang=target_lang)
         return fallback
 
+    # Create context from relevant chunks
     context = "\n".join(relevant_chunks)
     persona = (
         "You are a helpful AI assistant for Housess Real Estate specializing in real estate. "
@@ -81,16 +118,17 @@ def rag_response(query, target_lang='en'):
     full_context = persona + "\n\n" + context
     prompt = f"Context:\n{full_context}\n\nQuestion:\n{translated_query}\n\nAnswer:"
 
+    # Run the query through the memory-enabled chain
     try:
-        response = model.generate_content(prompt)
-        answer_in_english = response.text
+        response = chat_chain.run(query)
+        answer_in_english = response
     except Exception as e:
         return f"An error occurred: {str(e)}"
 
-    # Translate back to target language
+    # Translate back to the target language
     if target_lang != 'en':
         return translate_text(answer_in_english, src_lang='en', target_lang=target_lang)
-    
+
     return answer_in_english
 
 if __name__ == "__main__":

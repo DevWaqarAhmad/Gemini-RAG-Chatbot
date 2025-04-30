@@ -35,13 +35,18 @@ selected_lang_code = SUPPORTED_LANGUAGES[selected_lang_name]
 # Refresh chat button
 if st.sidebar.button("Refresh Chat"):
     st.session_state.messages = []
+    # Clear memory if the chat is refreshed
+    st.session_state.memory = []
 
 # Main content
-st.title("Housess Real Eastate AI Agent")
+st.title("Housess Real Estate AI Agent")
 
-# Initialize chat history
+# Initialize chat history and memory
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "memory" not in st.session_state:
+    st.session_state.memory = []  # This memory will store the conversation summary
 
 # Display chat messages from history
 for message in st.session_state.messages:
@@ -55,19 +60,26 @@ if prompt := st.chat_input("Ask your question..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Determine target language
     target_lang = selected_lang_code
 
-    # Generate assistant response
-    with st.chat_message("assistant"):
-        with st.spinner("Generating Response..."):
-            answer = rag_response(prompt, target_lang=target_lang)
-        st.markdown(answer)
+    # Check if user wants to summarize the chat
+    if "summarize" in prompt.lower():
+        summary = "\n".join(st.session_state.memory)  # Show conversation summary
+        with st.chat_message("assistant"):
+            st.markdown(f"**Chat Summary**:\n{summary}")
+        st.session_state.messages.append({"role": "assistant", "content": f"**Chat Summary**:\n{summary}"})
+    else:
+        # Generate a response based on the prompt
+        with st.chat_message("assistant"):
+            with st.spinner("Generating Response..."):
+                answer = rag_response(prompt, target_lang=target_lang)
+            st.markdown(answer)
 
-    # Add assistant message to history
-    st.session_state.messages.append({"role": "assistant", "content": answer})
+        # Store assistant response to memory
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        st.session_state.memory.append(answer)  # Add the answer to the memory
 
-# Initial greeting
+# Default greeting if there are no previous messages
 if len(st.session_state.messages) == 0:
     with st.chat_message("assistant"):
         st.markdown("Hello! How can I help you today?")

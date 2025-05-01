@@ -67,49 +67,63 @@ def translate_text(text, src_lang='auto', target_lang='en'):
 chat_history = []
 
 def rag_response(query, chat_history=[], target_lang='en'):
-    original_lang = detect_language(query)
+    # Step 1: Detect input language
+    try:
+        original_lang = detect(query)
+    except:
+        original_lang = 'en'
 
+    # Step 2: Translate to English if needed
     if original_lang != 'en':
-        translated_query = translate_text(query, src_lang=original_lang, target_lang='en')
+        try:
+            translated_query = translator.translate(query, src=original_lang, dest='en').text
+        except:
+            translated_query = query
     else:
         translated_query = query
 
+    # Step 3: Retrieve relevant info from knowledge base
     relevant_chunks = retrieve_relevant_chunks(translated_query, top_k=3)
 
     if not relevant_chunks:
-        fallback = ("I'm sorry, I couldn't find any relevant information to answer your question. "
-                    "Further, you can contact us at +971 04 569 3020 or info@housess.ae.")
-        if target_lang != 'en':
-            return translate_text(fallback, src_lang='en', target_lang=target_lang)
+        fallback = "I couldn't find relevant info. Please try rephrasing or contact us at +971 04 569 3020 or info@housess.ae."
+        if original_lang != 'en':
+            return translator.translate(fallback, src='en', dest=original_lang).text
         return fallback
 
+    # Step 4: Build context and prompt
     context = "\n".join(relevant_chunks)
+    history_text = "\n".join(chat_history)
     persona = (
         "You are a helpful AI assistant for Housess Real Estate specializing in real estate. "
         "Your goal is to provide accurate, concise, and friendly responses to user queries. "
         "If you don't know the answer, politely inform the user."
     )
 
-    # Include conversation memory (previous Q&A)
-    history_text = "\n".join(chat_history)  
-
     full_context = f"{persona}\n\n{history_text}\n\n{context}"
     prompt = f"Context:\n{full_context}\n\nQuestion:\n{translated_query}\n\nAnswer:"
 
+    # Step 5: Get Gemini response
     try:
         response = model.generate_content(prompt)
         answer_in_english = response.text
     except Exception as e:
         return f"An error occurred: {str(e)}"
 
+    # Step 6: Translate back to original language
+    if original_lang != 'en':
+        try:
+            answer = translator.translate(answer_in_english, src='en', dest=original_lang).text
+        except:
+            answer = answer_in_english
+    else:
+        answer = answer_in_english
+
+    # Step 7: Update chat history
     chat_history.append(f"User: {translated_query}")
     chat_history.append(f"Bot: {answer_in_english}")
 
-    if target_lang != 'en':
-        return translate_text(answer_in_english, src_lang='en', target_lang=target_lang)
-    
-    return answer_in_english
-
+    return answer
 
 if __name__ == "__main__":
     print("Welcome to Housess AI Assistant! (Type 'exit' to quit)\n")

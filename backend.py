@@ -7,8 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from langdetect import detect
 from googletrans import Translator
 
-#my_api_key = os.getenv("API_KEY")
-my_key =  "AIzaSyD9fjgQqop4Nz_F_iDdIxqIykAW5Vpz5_g" 
+load_dotenv()
+my_key = os.getenv("GEMINI_API_KEY") 
 genai.configure(api_key=my_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 

@@ -34,7 +34,19 @@ if st.sidebar.button("Refresh Chat"):
     st.session_state.messages = []
     st.session_state.chat_history = []
 
+st.sidebar.markdown("---")
 
+# 📞 Contact info section
+st.sidebar.markdown(
+    """
+    <div style='font-family: Arial, sans-serif; padding: 10px;'>
+        <h4 style='margin-bottom: 5px;'>📞 Contact Us</h4>
+        <p style='margin: 0;'><strong>Phone:</strong> (04) 569 3020</p>
+        <p style='margin: 0;'><strong>Email:</strong> <a href="mailto:info@housess.ae">info@housess.ae</a></p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 st.title("Housess Real Estate AI Agent")
 
 

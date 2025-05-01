@@ -1,6 +1,5 @@
-
 import os
-import dotenv
+from dotenv import load_dotenv
 import google.generativeai as genai
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity

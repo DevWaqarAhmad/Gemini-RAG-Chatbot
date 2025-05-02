@@ -7,7 +7,7 @@ from langdetect import detect
 from googletrans import Translator
 
 # Load environment variables
-load_dotenv()
+#load_dotenv()
 my_key = os.environ.get("Gemini_API_KEY")
 #database_url = os.environ.get('DATABASE_URL')
 # Configure Gemini API

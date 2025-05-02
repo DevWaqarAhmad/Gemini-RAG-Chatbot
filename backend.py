@@ -5,12 +5,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 from langdetect import detect
 from googletrans import Translator
-
-# Load environment variables
 #load_dotenv()
 
 # Configure Gemini API
-my_key = os.environ.get("GEMINI_API_KEY")
+my_key = os.environ.get("Gemini_API_KEY")
 genai.configure(api_key=my_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 

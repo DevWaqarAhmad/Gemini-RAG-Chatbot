@@ -1,3 +1,5 @@
 newenv
 .env
-housses  knowledge base.txt
+
+__pycache__/
+*.pyc

@@ -12,7 +12,7 @@ from googletrans import Translator
 #my_key = os.getenv("GEMINI_API_KEY") 
 my_key = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=my_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 file_path = 'housess_knowledge_base.txt'
 
